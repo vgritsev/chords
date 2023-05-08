@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chord Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.26/Tone.js"></script>
+</head>
+<body>
+  <h1>Chord Generator</h1>
+  <p id="chordDisplay"></p>
+<button onclick="generateChord()">Generate Chord</button>
+<button onclick="playChord(randomLetter,randomModifier,randomType)">Play Chord</button>
+  <script>
+    const chordLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const modifiers = ['♯', '♭', ''];
+    const chordTypes = ['△', '7', 'm7', 'ø', '°', '7+9', '7♯9', '7♭9', 'm79'];
+
+    const synth = new Tone.Synth({    oscillator : {
+    type : "triangle"
+  }
+}).toDestination();
+//    const synth = new Tone.OmniOscillator("C#4", "pwm").toDestination()
+
+
+    document.addEventListener('keydown', function(event) {
+      if (event.code === 'Space') {
+        generateChord();
+      }
+    });
+
+      var randomLetter = chordLetters[Math.floor(Math.random() * chordLetters.length)];
+      var randomModifier = modifiers[Math.floor(Math.random() * modifiers.length)];
+      var randomType = chordTypes[Math.floor(Math.random() * chordTypes.length)];
+
+    function generateChord() {
+     var context = new AudioContext();
+      randomLetter = chordLetters[Math.floor(Math.random() * chordLetters.length)];
+      randomModifier = modifiers[Math.floor(Math.random() * modifiers.length)];
+      randomType = chordTypes[Math.floor(Math.random() * chordTypes.length)];
+
+      const chord = randomLetter + randomModifier + randomType;
+      document.getElementById('chordDisplay').textContent = chord;
+    }
+
+    function playChord(letter, mod, type) {
+      const rootNote = letter;
+      const modifier = mod;
+      const chordType = type;
+      let intervals = [];
+
+      switch (chordType) {
+        case '△': // Major 7
+          intervals = [0, 4, 7, 11];
+          break;
+        case '7': // Dominant 7
+          intervals = [0, 4, 7, 10];
+          break;
+        case 'm7': // Minor 7
+          intervals = [0, 3, 7, 10];
+          break;
+        case 'ø': // Half Diminished
+          intervals = [0, 3, 6, 10];
+          break;
+        case '°': // Full Diminished
+          intervals = [0, 3, 6, 9];
+          break;
+        case '7+9': // Dominant 7 + 9
+          intervals = [0, 4, 7, 10, 14];
+          break;
+        case '7♯9': // Dominant 7 + sharp 9
+          intervals = [0, 4, 7, 10, 15];
+          break;
+        case '7♭9': // Dominant 7 + flat 9
+          intervals = [0, 4, 7, 10, 13];
+          break;
+        case 'm7♭9': // Minor 7 + flat 9
+          intervals = [0, 3, 7, 10, 13];
+          break;
+        default:
+          intervals = [0, 4, 7];
+          break;
+      }
+
+      const notes = intervals.map(interval => {
+        let note = rootNote;
+        if (modifier === '♯') {
+          note += '#';
+        } else if (modifier === '♭') {
+          note += 'b';
+        }
+        return Tone.Frequency(note+'3').transpose(interval);
+      });
+      const strumDelay = 0.175; // Delay between each note in seconds
+
+      const now = Tone.now();
+
+      notes.forEach((note, index) => {
+        const strumTime = now + index * strumDelay;
+        synth.triggerAttackRelease(note, '8n', strumTime);
+      });
+    }
+
+  </script>
+</body>
+</html>
